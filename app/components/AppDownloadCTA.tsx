@@ -3,6 +3,16 @@
 const IOS_LINK = "https://apps.apple.com/us/app/ubique-fashion-style-advisor/id6553972786";
 const ANDROID_LINK = "https://play.google.com/store/apps/details?id=com.ubique";
 
+function trackClick(platform: "app_store" | "play_store") {
+    fetch("/api/track-click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform }),
+    }).catch(() => {
+        // silently ignore — tracking should never block the user
+    });
+}
+
 function CloseX() {
     return (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -123,6 +133,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                     href={IOS_LINK}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackClick("app_store")}
                     style={{
                         display: "flex",
                         alignItems: "center",
@@ -153,6 +164,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                     href={ANDROID_LINK}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackClick("play_store")}
                     style={{
                         display: "flex",
                         alignItems: "center",
