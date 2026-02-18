@@ -51,21 +51,16 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
-        const apiKey = process.env.AZURE_OPENAI_API_KEY;
-        const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
-        const apiVersion = process.env.AZURE_OPENAI_API_VERSION || "2024-12-01-preview";
+        const apiKey = process.env.OPENAI_API_KEY;
 
-        if (!endpoint || !apiKey || !deployment) {
+        if (!apiKey) {
             return NextResponse.json(
-                { error: "Azure OpenAI is not configured. Check your .env.local file." },
+                { error: "OpenAI API Key is not configured. Add OPENAI_API_KEY to .env.local" },
                 { status: 500 }
             );
         }
 
-        // Strip trailing slash from endpoint
-        const baseUrl = endpoint.replace(/\/+$/, "");
-        const url = `${baseUrl}/openai/deployments/${deployment}/chat/completions?api-version=${apiVersion}`;
+        const url = "https://api.openai.com/v1/chat/completions";
 
         // Extract base64 data — handle both "data:image/...;base64,XXX" and raw base64
         let base64Data = image;
@@ -121,6 +116,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = {
+            model: "gpt-4o",
             messages,
             max_tokens: 300,
             temperature: 0.9,
@@ -130,14 +126,14 @@ export async function POST(req: NextRequest) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "api-key": apiKey,
+                "Authorization": `Bearer ${apiKey}`,
             },
             body: JSON.stringify(body),
         });
 
         if (!response.ok) {
             const errText = await response.text();
-            console.error("Azure OpenAI error:", response.status, errText);
+            console.error("OpenAI error:", response.status, errText);
             return NextResponse.json(
                 { error: `AI service error (${response.status}). Please try again.` },
                 { status: response.status }
