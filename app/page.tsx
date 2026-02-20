@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import AppDownloadCTA from "./components/AppDownloadCTA";
+import LogoImage from "./Images/logo.png";
+import AiIcon from "./Images/Icon.jpg";
 
 /* ─── Icons ───────────────────────────────────────────── */
 
@@ -70,18 +72,55 @@ function SendIcon({ className = "" }: { className?: string }) {
   );
 }
 
+function InstagramIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function ImagePlusIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} width="22" height="22" viewBox="0 0 48 48" fill="currentColor">
+      <path d="M29.45 6V9H9Q9 9 9 9Q9 9 9 9V39Q9 39 9 39Q9 39 9 39H39Q39 39 39 39Q39 39 39 39V18.6H42V39Q42 40.2 41.1 41.1Q40.2 42 39 42H9Q7.8 42 6.9 41.1Q6 40.2 6 39V9Q6 7.8 6.9 6.9Q7.8 6 9 6ZM38 6V10.05H42.05V13.05H38V17.1H35V13.05H30.95V10.05H35V6ZM12 33.9H36L28.8 24.3L22.45 32.65L17.75 26.45ZM9 9V14.55V18.6V39Q9 39 9 39Q9 39 9 39Q9 39 9 39Q9 39 9 39V9Q9 9 9 9Q9 9 9 9Z"/>
+    </svg>
+  );
+}
+
 /* ─── Chat Types ──────────────────────────────────────── */
 
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  images?: string[];
 };
 
 const QUICK_QUESTIONS = [
-  "Does this suit me?",
+  "How do I look?",
   "What should I change?",
-  "Rate this outfit 1-10",
+  "How do I style this?",
   "What shoes would go with this?",
 ];
 
@@ -434,7 +473,9 @@ function CameraModal({
 export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  const [pendingImages, setPendingImages] = useState<string[]>([]);
   const [showCamera, setShowCamera] = useState(false);
+  const [showChoiceModal, setShowChoiceModal] = useState(false);
   const [question, setQuestion] = useState("");
   const [isAsking, setIsAsking] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -444,6 +485,8 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const promoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const keepChatRef = useRef(false);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -460,25 +503,42 @@ export default function Home() {
   const askQuestion = useCallback(async (q: string) => {
     if (!uploadedFile || !q.trim() || isAsking || chatDisabled) return;
 
+    // Trigger pop-up immediately if this is the second question being sent
+    if (exchangeCount === 1) {
+      if (promoTimeoutRef.current) {
+        clearTimeout(promoTimeoutRef.current);
+        promoTimeoutRef.current = null;
+      }
+      setShowPromo(true);
+    }
+
+    // Attach current pending images to this message
+    const imagesForThisMessage = pendingImages.length > 0 ? [...pendingImages] : undefined;
+    setPendingImages([]);
+
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: "user",
       content: q.trim(),
+      images: imagesForThisMessage,
     };
     setMessages((prev) => [...prev, userMsg]);
     setIsAsking(true);
     setQuestion("");
 
-    // Build history from existing messages
+    // Build history from existing messages (include images for context)
     const history = messages
-      .map((m) => ({ role: m.role, content: m.content }));
+      .map((m) => ({ role: m.role, content: m.content, images: m.images }));
+
+    // Collect all images to send: the images from this message
+    const allImages = imagesForThisMessage || [uploadedFile];
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: uploadedFile,
+          images: allImages,
           question: q.trim(),
           history: history.length > 0 ? history : undefined,
         }),
@@ -504,8 +564,14 @@ export default function Home() {
         const newCount = exchangeCount + 1;
         setExchangeCount(newCount);
 
-        // Show app download modal at the right times
-        if (newCount === FIRST_PROMO_AFTER || (dismissedAtCount !== null && newCount >= dismissedAtCount + REPROMO_AFTER)) {
+        // Show app download modal after 5 seconds for the first reply
+        if (newCount === FIRST_PROMO_AFTER) {
+          promoTimeoutRef.current = setTimeout(() => {
+            setShowPromo(true);
+            promoTimeoutRef.current = null;
+          }, 5000);
+        } else if (dismissedAtCount !== null && newCount >= dismissedAtCount + REPROMO_AFTER) {
+          // Re-promo logic for subsequent exchanges
           setTimeout(() => setShowPromo(true), 600);
         }
       }
@@ -519,20 +585,33 @@ export default function Home() {
     } finally {
       setIsAsking(false);
     }
-  }, [uploadedFile, isAsking, messages, exchangeCount, dismissedAtCount, chatDisabled]);
+  }, [uploadedFile, pendingImages, isAsking, messages, exchangeCount, dismissedAtCount, chatDisabled]);
 
   const handleFile = useCallback((file: File) => {
     if (file && file.type.startsWith("image/")) {
-      console.log("📸 File info:", { name: file.name, size: file.size, type: file.type });
       const reader = new FileReader();
       reader.onload = (e) => {
         const base64Data = e.target?.result as string;
-        console.log("📸 Base64 data URL:", base64Data);
-        setUploadedFile(base64Data);
+        if (!uploadedFile && !keepChatRef.current) {
+          // First ever image — set as primary and reset chat
+          setUploadedFile(base64Data);
+          setPendingImages([base64Data]);
+          setMessages([]);
+          setExchangeCount(0);
+        } else {
+          // Additional image — append to pending
+          setUploadedFile((prev) => prev || base64Data);
+          setPendingImages((prev) => [...prev, base64Data]);
+          if (!keepChatRef.current) {
+            setMessages([]);
+            setExchangeCount(0);
+          }
+        }
+        keepChatRef.current = false;
       };
       reader.readAsDataURL(file);
     }
-  }, []);
+  }, [uploadedFile]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -551,7 +630,12 @@ export default function Home() {
 
   const handleDragLeave = useCallback(() => setIsDragging(false), []);
 
-  const handleUploadClick = () => fileInputRef.current?.click();
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
 
   const handleCameraClick = () => {
     if (navigator.mediaDevices && "getUserMedia" in navigator.mediaDevices) {
@@ -562,18 +646,80 @@ export default function Home() {
   };
 
   const handleCameraCapture = (dataUrl: string) => {
-    console.log("📸 Camera capture Base64 data URL:", dataUrl);
     setShowCamera(false);
-    setUploadedFile(dataUrl);
+    if (!uploadedFile && !keepChatRef.current) {
+      setUploadedFile(dataUrl);
+      setPendingImages([dataUrl]);
+      setMessages([]);
+      setExchangeCount(0);
+    } else {
+      setUploadedFile((prev) => prev || dataUrl);
+      setPendingImages((prev) => [...prev, dataUrl]);
+      if (!keepChatRef.current) {
+        setMessages([]);
+        setExchangeCount(0);
+      }
+    }
+    keepChatRef.current = false;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFile(file);
+    // Reset so the same file can be re-selected next time
+    e.target.value = "";
   };
 
   return (
-    <main className="min-h-dvh flex flex-col items-center px-5 pb-16 bg-[var(--clr-bg)] font-[var(--font-body)]">
+    <div className="min-h-screen flex flex-col bg-[var(--clr-bg)] font-[var(--font-body)]">
+      <main className="flex-grow flex flex-col items-center px-5 pb-16">
+
+      {/* ── Choice Modal ──────────────────────── */}
+      {showChoiceModal && (
+        <div 
+          className="fixed inset:0 z-[10000] flex items-center justify-center p-4"
+          style={{ position: 'fixed', inset: 0 }}
+        >
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+            onClick={() => setShowChoiceModal(false)}
+          />
+          <div className="relative bg-white rounded-3xl p-6 w-full max-w-[320px] shadow-2xl anim-scale text-center">
+            <h3 className="text-lg font-semibold mb-6 text-[var(--clr-text)]">Add a photo</h3>
+            
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setShowChoiceModal(false);
+                  handleUploadClick();
+                }}
+                className="w-full py-4 rounded-2xl bg-[var(--clr-bg)] border border-[var(--clr-border)] text-[var(--clr-text)] font-semibold flex items-center justify-center gap-3 hover:bg-[var(--clr-accent-light)] hover:border-[var(--clr-accent)] transition-all"
+              >
+                <UploadIcon className="text-[var(--clr-accent)]" />
+                Choose Photo
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowChoiceModal(false);
+                  handleCameraClick();
+                }}
+                className="w-full py-4 rounded-2xl bg-[var(--clr-bg)] border border-[var(--clr-border)] text-[var(--clr-text)] font-semibold flex items-center justify-center gap-3 hover:bg-[var(--clr-accent-light)] hover:border-[var(--clr-accent)] transition-all"
+              >
+                <CameraIcon className="text-[var(--clr-accent)]" />
+                Take Photo
+              </button>
+            </div>
+            
+            <button 
+              onClick={() => setShowChoiceModal(false)}
+              className="mt-6 text-sm text-[var(--clr-text-sec)] font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Camera Modal ──────────────────────── */}
       {showCamera && (
@@ -587,13 +733,8 @@ export default function Home() {
       {showPromo && <AppDownloadCTA onClose={handleDismissPromo} />}
 
       {/* ── Brand Header ──────────────────────────────── */}
-      <header className="text-center mt-[clamp(40px,8vh,80px)] mb-3 anim-fade-up">
-        <div className="font-[var(--font-brand)] text-[clamp(20px,3vw,26px)] font-semibold tracking-[0.38em] uppercase text-[var(--clr-text)]">
-          UBIQUE
-        </div>
-        <div className="font-[var(--font-brand)] text-[10px] font-medium tracking-[0.45em] uppercase text-[var(--clr-text-tri)]">
-          FASHION
-        </div>
+      <header className="text-center mt-[clamp(40px,8vh,80px)] mb-8 anim-fade-up">
+        <img src={LogoImage.src} alt="Ubique" className="h-[60px] mx-auto" />
       </header>
 
       {/* ── Hero Text ─────────────────────────────────── */}
@@ -602,8 +743,7 @@ export default function Home() {
           Style advice that actually helps
         </h1>
         <p className="text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto">
-          Upload an outfit photo and I&apos;ll tell you exactly what to change
-          — like the honest friend you bring to the fitting room.
+         Upload a photo and get instant style advice. Find out what's working, what to fix, and what to try instead.
         </p>
       </section>
 
@@ -613,7 +753,7 @@ export default function Home() {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={`
-          w-full max-w-[460px] bg-[var(--clr-surface)] rounded-[20px] card-upload
+          w-full max-w-[480px] bg-[var(--clr-surface)] rounded-[20px] card-upload
           px-[clamp(24px,4vw,36px)] py-[clamp(28px,4vw,40px)]
           mb-10 
           
@@ -623,35 +763,87 @@ export default function Home() {
         {/* Top accent gradient */}
         <div className="absolute top-0 left-0 right-0 h-[3px] card-accent-bar opacity-40" />
 
+        {/* Hidden file inputs — always in DOM so uploads work from any state */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          id="file-upload"
+        />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="user"
+          onChange={handleFileChange}
+          className="hidden"
+          id="camera-capture"
+        />
+
         {uploadedFile ? (
           /* ── Preview + Chat State ─── */
           <div>
-            <div className="rounded-[14px] overflow-hidden mb-5 max-h-60">
-              <img
-                src={uploadedFile}
-                alt="Uploaded outfit"
-                className="w-full h-auto max-h-60 object-contain block"
-              />
-            </div>
-
+            {/* Pending images preview strip (initial — no messages yet) */}
+            {pendingImages.length > 0 && messages.length === 0 && (
+              <div className="mb-4">
+                <div
+                  className="flex gap-2 overflow-x-auto pb-2"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {pendingImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative flex-shrink-0 rounded-xl overflow-hidden border-2 border-[#8410CA]/30 shadow-sm"
+                      style={{ width: pendingImages.length === 1 ? "100%" : 120, height: pendingImages.length === 1 ? "auto" : 120 }}
+                    >
+                      <img
+                        src={img}
+                        alt={`Outfit ${idx + 1}`}
+                        className="w-full h-full object-cover block"
+                        style={{ maxHeight: pendingImages.length === 1 ? 240 : 120 }}
+                      />
+                      <button
+                        onClick={() => setPendingImages((prev) => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center text-xs font-bold cursor-pointer border-none hover:bg-black/70 transition-colors"
+                        aria-label={`Remove image ${idx + 1}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowChoiceModal(true)}
+                  className="mt-2 text-xs text-[#8410CA] font-semibold bg-transparent border-none cursor-pointer flex items-center gap-1 mx-auto hover:underline"
+                >
+                  <ImagePlusIcon className="!w-4 !h-4" /> Add another photo
+                </button>
+              </div>
+            )}
             {/* Chat Messages Thread */}
             {messages.length > 0 && (
               <div
                 className="mb-4 overflow-y-auto"
                 style={{
-                  maxHeight: 320,
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "rgba(0,0,0,0.1) transparent",
+                  maxHeight: 600,
+                  scrollbarWidth: "none",
                 }}
               >
                 <div className="flex flex-col gap-3">
-                  {messages.map((msg) => {
+                  {messages.map((msg, idx) => {
                     const isUser = msg.role === "user";
                     return (
                       <div
                         key={msg.id}
-                        className={`flex ${isUser ? "justify-end" : "justify-start"} anim-fade-up`}
+                        className={`flex ${isUser ? "justify-end" : "justify-start"} items-end gap-2 mb-1 anim-fade-up`}
                       >
+                        {!isUser && (
+                          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1">
+                            <img src={AiIcon.src} alt="AI" className="w-full h-full object-cover" />
+                          </div>
+                        )}
                         <div
                           className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${isUser
                             ? "bg-[#8410CA] text-white rounded-br-md"
@@ -663,7 +855,31 @@ export default function Home() {
                               Ubique AI
                             </span>
                           )}
-                          {isUser ? msg.content : renderMarkdown(msg.content)}
+                          {isUser ? (
+                            <div className="flex flex-col gap-3">
+                              <span>{msg.content}</span>
+                              {msg.images && msg.images.length > 0 && (
+                                <div className={`flex gap-1.5 ${msg.images.length === 1 ? "flex-col" : "flex-wrap"}`}>
+                                  {msg.images.map((img, imgIdx) => (
+                                    <div
+                                      key={imgIdx}
+                                      className="rounded-lg overflow-hidden border border-white/20 shadow-sm"
+                                      style={{ width: msg.images!.length === 1 ? "100%" : "calc(50% - 3px)" }}
+                                    >
+                                      <img
+                                        src={img}
+                                        alt={`Outfit ${imgIdx + 1}`}
+                                        className="w-full h-auto object-cover block"
+                                        style={{ maxHeight: msg.images!.length === 1 ? 300 : 150 }}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            renderMarkdown(msg.content)
+                          )}
                         </div>
                       </div>
                     );
@@ -671,12 +887,15 @@ export default function Home() {
 
                   {/* Typing indicator */}
                   {isAsking && (
-                    <div className="flex justify-start anim-fade">
+                    <div className="flex justify-start items-end gap-2 anim-fade">
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1">
+                        <img src={AiIcon.src} alt="AI" className="w-full h-full object-cover" />
+                      </div>
                       <div className="bg-[var(--clr-bg)] border border-[var(--clr-border)] rounded-2xl rounded-bl-md px-4 py-3">
                         <div className="flex gap-1.5 items-center">
-                          <div className="w-2 h-2 rounded-full bg-[var(--clr-text-tri)]" style={{ animation: "pulse 1.2s ease infinite" }} />
-                          <div className="w-2 h-2 rounded-full bg-[var(--clr-text-tri)]" style={{ animation: "pulse 1.2s ease 0.2s infinite" }} />
-                          <div className="w-2 h-2 rounded-full bg-[var(--clr-text-tri)]" style={{ animation: "pulse 1.2s ease 0.4s infinite" }} />
+                          <div className="w-2 h-2 rounded-full bg-[#8410CA]" style={{ animation: "pulse 1.2s ease infinite" }} />
+                          <div className="w-2 h-2 rounded-full bg-[#8410CA]" style={{ animation: "pulse 1.2s ease 0.2s infinite" }} />
+                          <div className="w-2 h-2 rounded-full bg-[#8410CA]" style={{ animation: "pulse 1.2s ease 0.4s infinite" }} />
                         </div>
                       </div>
                     </div>
@@ -704,6 +923,36 @@ export default function Home() {
             )}
 
             {/* Chat input OR disabled CTA */}
+            {/* Mid-chat pending images preview (above input bar) */}
+            {pendingImages.length > 0 && messages.length > 0 && !chatDisabled && (
+              <div className="mb-3">
+                <div
+                  className="flex gap-2 overflow-x-auto pb-1"
+                  style={{ scrollbarWidth: "none" }}
+                >
+                  {pendingImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative flex-shrink-0 rounded-lg overflow-hidden border-2 border-[#8410CA]/30 shadow-sm"
+                      style={{ width: 72, height: 72 }}
+                    >
+                      <img
+                        src={img}
+                        alt={`Outfit ${idx + 1}`}
+                        className="w-full h-full object-cover block"
+                      />
+                      <button
+                        onClick={() => setPendingImages((prev) => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] font-bold cursor-pointer border-none hover:bg-black/70 transition-colors"
+                        aria-label={`Remove image ${idx + 1}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {chatDisabled ? (
               <div className="text-center py-3 px-4 rounded-2xl mb-4 anim-fade-up" style={{ background: "rgba(132,16,202,0.06)", border: "1px solid rgba(132,16,202,0.15)" }}>
                 <p className="text-sm font-semibold text-[var(--clr-text)] mb-1">
@@ -720,7 +969,19 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <div className="flex gap-2 mb-4">
+              <div className="flex gap-2 mb-4 items-center">
+                {messages.length > 0 && (
+                  <button
+                    onClick={() => {
+                      keepChatRef.current = true;
+                      setShowChoiceModal(true);
+                    }}
+                    className="w-11 h-11 rounded-full bg-[#F0F0F0] border-none flex items-center justify-center text-[#1a1a1a] cursor-pointer hover:bg-[#E5E5E5] transition-colors flex-shrink-0"
+                    aria-label="Upload again"
+                  >
+                    <ImagePlusIcon />
+                  </button>
+                )}
                 <input
                   type="text"
                   value={question}
@@ -731,7 +992,7 @@ export default function Home() {
                       askQuestion(question);
                     }
                   }}
-                  placeholder={messages.length === 0 ? "Ask about your outfit..." : "Ask a follow-up..."}
+                  placeholder={messages.length === 0 ? "Ask anything - fit, colours, occasion…" : "Ask a follow-up..."}
                   disabled={isAsking}
                   className="flex-1 px-4 py-3 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] text-[var(--clr-text)] text-sm font-[var(--font-body)] outline-none placeholder:text-[var(--clr-text-tri)] focus:border-[var(--clr-accent)] transition-colors disabled:opacity-50"
                   id="chat-input"
@@ -762,7 +1023,7 @@ export default function Home() {
             )}
 
             <button
-              onClick={() => { setUploadedFile(null); setQuestion(""); setMessages([]); setExchangeCount(0); }}
+              onClick={() => { setUploadedFile(null); setQuestion(""); setMessages([]); setExchangeCount(0); setPendingImages([]); }}
               className="text-[13px] text-[var(--clr-accent)] bg-transparent border-none cursor-pointer font-medium underline underline-offset-[3px] block mx-auto"
             >
               Upload a different photo
@@ -770,32 +1031,11 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <h2 className="text-[clamp(18px,2.5vw,22px)] font-semibold text-center mb-1.5 text-[var(--clr-text)]">
-              Try it on your outfit
-            </h2>
+           
             <p className="text-sm text-[var(--clr-text-sec)] text-center mb-[clamp(20px,3vw,28px)]">
-              Mirror selfie, shopping screenshot, or a look you like.
+               Try a mirror selfie, shopping screenshot, or something you're thinking of buying.
             </p>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-              id="file-upload"
-            />
-
-            {/* Hidden camera input (fallback for mobile) */}
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="user"
-              onChange={handleFileChange}
-              className="hidden"
-              id="camera-capture"
-            />
 
             {/* Upload photo */}
             <button
@@ -804,7 +1044,7 @@ export default function Home() {
               className="bg-[#8410CA] w-full flex items-center justify-center gap-2.5 py-[15px] px-6 text-base font-semibold text-white border-none rounded-full cursor-pointer mb-3 font-[var(--font-body)] tracking-[0.01em]"
             >
               <UploadIcon />
-              Upload photo
+              Choose a photo
             </button>
 
             {/* Take photo */}
@@ -820,7 +1060,7 @@ export default function Home() {
             {/* Privacy */}
             <p className="flex items-center justify-center gap-1.5 text-[13px] text-[var(--clr-text-tri)] text-center">
               <LockIcon />
-              Private — only used to give you advice.
+              Your photo stays private. Never saved, never shared.
             </p>
           </>
         )}
@@ -828,27 +1068,76 @@ export default function Home() {
 
       {/* ── Feature Bullets ───────────────────────────── */}
       <section className="max-w-[460px] w-full mb-10 anim-fade-up [animation-delay:0.4s]">
-        <ul className="list-disc pl-5 flex flex-col gap-2.5 marker:text-[var(--clr-text-tri)]">
+        <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3">
           {[
-            "What\u2019s working (and what isn\u2019t)",
-            "What to swap instead",
-            "How to make it feel more you",
+            "Instant Analysis",
+            "Color Harmony",
+            "Fit Advice",
           ].map((text, i) => (
             <li
               key={i}
-              className="text-[15px] text-[var(--clr-text)]"
+              className="flex items-center gap-2.5"
             >
-              <span className=" text-[13px] text-[var(--clr-text-tri)] text-center">{text}</span>
+              <div className="flex -space-x-1.5">
+                <div className="w-2 h-2 rounded-full bg-[#8410CA]" />
+                <div className="w-2 h-2 rounded-full bg-[#8410CA] opacity-40" />
+              </div>
+              <span className="text-[14px] text-[var(--clr-text-sec)] font-medium tracking-tight">{text}</span>
             </li>
           ))}
         </ul>
       </section>
 
       {/* ── Social Proof ──────────────────────────────── */}
-      <p className="text-sm text-[var(--clr-text-tri)] text-center italic max-w-[480px] leading-relaxed anim-fade [animation-delay:0.7s]">
-        People usually upload just to test it. They end up screenshotting the
-        advice.
+      <p className="text-sm text-[var(--clr-text-tri)] text-center italic max-w-[600px] leading-relaxed anim-fade [animation-delay:0.7s]">
+       This is just a demo. In the app, Ubique remembers you, your wardrobe, your style, your conversations - and connects you to the best shops and experts from Milan. It's free.
       </p>
-    </main>
+      </main>
+
+      {/* ── Footer ────────────────────────────────────── */}
+      <footer className="bg-black text-white pt-10 px-5">
+        <div className="max-w-[600px] mx-auto w-full">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-12">
+            
+            {/* Left: Logo & Socials */}
+            <div className="flex flex-col gap-6">
+              
+              <div className="flex gap-4">
+                {[
+                  { icon: <InstagramIcon />, url: "https://www.instagram.com/ubique_fashion/" },
+                  { icon: <LinkedinIcon />, url: "https://www.linkedin.com/company/ubique-fashion/?viewAsMember=true" },
+                  { icon: <FacebookIcon />, url: "https://www.facebook.com/ubiquefashionitaly/" }
+                ].map((social, i) => (
+                  <a
+                    key={i}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black hover:bg-white/90 transition-all hover:scale-105"
+                  >
+                    {social.icon}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Policies and Info stacked */}
+            <div className="flex flex-col gap-2 md:items-end">
+              <div className="flex gap-6 sm:gap-10 text-sm font-medium tracking-wide">
+                <a href="#" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Legal</a>
+                <a href="#" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Privacy Policy</a>
+              </div>
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-2 text-[12px] text-white/50 tracking-wide font-light">
+                <span>Ubique S.R.L.</span>
+                <span className="hidden md:inline">|</span>
+                <span>info@ubiquefashion.com</span>
+                <span className="hidden md:inline">|</span>
+                <span>P.IVA 11226420963</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

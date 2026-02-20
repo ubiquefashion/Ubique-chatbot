@@ -2,8 +2,8 @@
 
 /* ── Design Tokens ───────────────────────────────────── */
 :root {
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-brand: "Outfit", "Inter", sans-serif;
+  --font-body: var(--font-poppins), sans-serif;
+  --font-brand: var(--font-poppins), sans-serif;
 
   --clr-bg: #fafafa;
   --clr-surface: #ffffff;
@@ -53,10 +53,11 @@
 }
 
 /* ── Base ────────────────────────────────────────────── */
-html {
+html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-family: var(--font-body);
 }
 
 /* ── Animation Utilities ─────────────────────────────── */

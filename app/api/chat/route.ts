@@ -34,19 +34,46 @@ Example tones:
 type ChatMessage = {
     role: "user" | "assistant";
     content: string;
+    images?: string[];
 };
+
+function parseImageDataUrl(img: string): { mimeType: string; base64Data: string } {
+    let base64Data = img;
+    let mimeType = "image/jpeg";
+    if (img.startsWith("data:")) {
+        const match = img.match(/^data:(image\/\w+);base64,(.*)$/);
+        if (match) {
+            mimeType = match[1];
+            base64Data = match[2];
+        }
+    }
+    return { mimeType, base64Data };
+}
+
+function buildImageParts(images: string[]) {
+    return images.map((img) => {
+        const { mimeType, base64Data } = parseImageDataUrl(img);
+        return {
+            type: "image_url" as const,
+            image_url: {
+                url: `data:${mimeType};base64,${base64Data}`,
+                detail: "high" as const,
+            },
+        };
+    });
+}
 
 export async function POST(req: NextRequest) {
     try {
-        const { image, question, history } = await req.json() as {
-            image: string;
+        const { images, question, history } = await req.json() as {
+            images: string[];
             question: string;
             history?: ChatMessage[];
         };
 
-        if (!image || !question) {
+        if ((!images || images.length === 0) || !question) {
             return NextResponse.json(
-                { error: "Both image and question are required" },
+                { error: "At least one image and a question are required" },
                 { status: 400 }
             );
         }
@@ -62,56 +89,49 @@ export async function POST(req: NextRequest) {
 
         const url = "https://api.openai.com/v1/chat/completions";
 
-        // Extract base64 data — handle both "data:image/...;base64,XXX" and raw base64
-        let base64Data = image;
-        let mimeType = "image/jpeg";
-        if (image.startsWith("data:")) {
-            const match = image.match(/^data:(image\/\w+);base64,(.*)$/);
-            if (match) {
-                mimeType = match[1];
-                base64Data = match[2];
-            }
-        }
-
         // Build messages array with conversation history
         const messages: Array<{ role: string; content: unknown }> = [
             {
                 role: "system",
                 content: SYSTEM_PROMPT,
             },
-            // First user message always includes the image
-            {
-                role: "user",
-                content: [
-                    {
-                        type: "image_url",
-                        image_url: {
-                            url: `data:${mimeType};base64,${base64Data}`,
-                            detail: "high",
-                        },
-                    },
-                    {
-                        type: "text",
-                        text: history && history.length > 0
-                            ? history[0].content
-                            : question,
-                    },
-                ],
-            },
         ];
 
-        // Add conversation history (skip first user message, already included above)
         if (history && history.length > 0) {
-            for (let i = 1; i < history.length; i++) {
-                messages.push({
-                    role: history[i].role,
-                    content: history[i].content,
-                });
+            // Reconstruct conversation from history
+            for (const msg of history) {
+                if (msg.role === "user" && msg.images && msg.images.length > 0) {
+                    // User message with images
+                    messages.push({
+                        role: "user",
+                        content: [
+                            ...buildImageParts(msg.images),
+                            { type: "text", text: msg.content },
+                        ],
+                    });
+                } else {
+                    messages.push({
+                        role: msg.role,
+                        content: msg.content,
+                    });
+                }
             }
-            // Add the current question as the latest user message
+            // Add the current question as the latest user message (with new images)
             messages.push({
                 role: "user",
-                content: question,
+                content: [
+                    ...buildImageParts(images),
+                    { type: "text", text: question },
+                ],
+            });
+        } else {
+            // First message — include all images + question
+            messages.push({
+                role: "user",
+                content: [
+                    ...buildImageParts(images),
+                    { type: "text", text: question },
+                ],
             });
         }
 
@@ -152,3 +172,4 @@ export async function POST(req: NextRequest) {
         );
     }
 }
+
