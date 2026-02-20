@@ -1161,8 +1161,8 @@ export default function Home() {
             {/* Right: Policies and Info stacked */}
             <div className="flex flex-col gap-2 md:items-end">
               <div className="flex gap-6 sm:gap-10 text-sm font-medium tracking-wide">
-                <a href="#" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Legal</a>
-                <a href="#" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Privacy Policy</a>
+                <a href="https://www.ubiquefashion.com/legal" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Legal</a>
+                <a href="https://www.ubiquefashion.com/privacy-policy" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Privacy Policy</a>
               </div>
               <div className="flex flex-col md:flex-row items-center md:items-end gap-2 text-[12px] text-white/50 tracking-wide font-light">
                 <span>Ubique S.R.L.</span>
