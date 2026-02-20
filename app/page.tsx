@@ -1089,9 +1089,46 @@ export default function Home() {
       </section>
 
       {/* ── Social Proof ──────────────────────────────── */}
-      <p className="text-sm text-[var(--clr-text-tri)] text-center italic max-w-[600px] leading-relaxed anim-fade [animation-delay:0.7s]">
-       This is just a demo. In the app, Ubique remembers you, your wardrobe, your style, your conversations - and connects you to the best shops and experts from Milan. It's free.
-      </p>
+      <section className="text-center max-w-[600px] mb-12 anim-fade [animation-delay:0.7s]">
+        <p className="text-sm text-[var(--clr-text-tri)] leading-relaxed italic mb-6">
+          This is just a demo. In the app, Ubique remembers you, your wardrobe, your style, your conversations - and connects you to the best shops and experts from Milan. It&apos;s free.
+        </p>
+        
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="https://apps.apple.com/us/app/ubique-fashion-style-advisor/id6553972786"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl hover:scale-[1.03] transition-transform shadow-sm"
+          >
+            <svg width="16" height="19" viewBox="0 0 20 24" fill="currentColor">
+              <path d="M15.07 12.95c-.03-2.79 2.28-4.14 2.38-4.21-1.3-1.9-3.32-2.16-4.04-2.19-1.72-.17-3.36 1.01-4.23 1.01-.87 0-2.22-.99-3.65-.96-1.88.03-3.61 1.09-4.58 2.78-1.95 3.39-.5 8.41 1.4 11.16.93 1.34 2.04 2.85 3.49 2.8 1.4-.06 1.93-.91 3.63-.91 1.69 0 2.18.91 3.66.88 1.51-.03 2.48-1.37 3.4-2.72 1.07-1.56 1.51-3.07 1.54-3.15-.03-.01-2.95-1.13-2.98-4.49zM12.25 4.6c.77-.94 1.29-2.24 1.15-3.54-1.11.05-2.45.74-3.25 1.67-.71.82-1.34 2.14-1.17 3.4 1.24.1 2.5-.63 3.27-1.53z" />
+            </svg>
+            <div className="text-left">
+              <div className="text-[10px] leading-none opacity-60">Download on the</div>
+              <div className="text-[14px] font-semibold leading-none mt-0.5">App Store</div>
+            </div>
+          </a>
+          
+          <a
+            href="https://play.google.com/store/apps/details?id=com.ubique"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl hover:scale-[1.03] transition-transform shadow-sm"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .61-.92z" fill="#4285F4" />
+              <path d="M17.114 8.68L5.442.86 14.86 10.93 17.114 8.68z" fill="#EA4335" />
+              <path d="M20.683 10.346l-3.17-1.847L14.86 12l2.653 3.5 3.17-1.846c.89-.52.89-1.788 0-2.308z" fill="#FBBC04" />
+              <path d="M5.442 23.14l11.672-7.82L14.86 13.07 5.442 23.14z" fill="#34A853" />
+            </svg>
+            <div className="text-left">
+              <div className="text-[10px] leading-none opacity-60">GET IT ON</div>
+              <div className="text-[14px] font-semibold leading-none mt-0.5">Google Play</div>
+            </div>
+          </a>
+        </div>
+      </section>
       </main>
 
       {/* ── Footer ────────────────────────────────────── */}
