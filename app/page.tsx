@@ -740,10 +740,10 @@ export default function Home() {
       {/* ── Hero Text ─────────────────────────────────── */}
       <section className="text-center max-w-[480px] mb-9 anim-fade-up [animation-delay:0.1s]">
         <h1 className="text-[30px] font-semibold leading-tight text-[var(--clr-text)] mb-4 tracking-tight">
-          Style advice that actually helps
+          Your Personal Style Advisor
         </h1>
         <p className="text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto">
-         Upload a photo and get instant style advice. Find out what's working, what to fix, and what to try instead.
+        Upload a photo and get honest feedback in seconds - what works, what to change, and what to wear instead.
         </p>
       </section>
 
@@ -992,7 +992,7 @@ export default function Home() {
                       askQuestion(question);
                     }
                   }}
-                  placeholder={messages.length === 0 ? "Ask anything - fit, colours, occasion…" : "Ask a follow-up..."}
+                  placeholder={messages.length === 0 ? "Ask anything - fit, colours, occasion…" : "Go deeper - ask about fit, styling, alternatives…"}
                   disabled={isAsking}
                   className="flex-1 px-4 py-3 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] text-[var(--clr-text)] text-sm font-[var(--font-body)] outline-none placeholder:text-[var(--clr-text-tri)] focus:border-[var(--clr-accent)] transition-colors disabled:opacity-50"
                   id="chat-input"
