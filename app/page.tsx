@@ -672,7 +672,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--clr-bg)] font-[var(--font-body)]">
-      <main className="flex-grow flex flex-col items-center px-5 pb-16">
+      <main className="flex-grow flex flex-col items-center px-4 sm:px-5 pb-10 sm:pb-16">
 
       {/* ── Choice Modal ──────────────────────── */}
       {showChoiceModal && (
@@ -733,16 +733,16 @@ export default function Home() {
       {showPromo && <AppDownloadCTA onClose={handleDismissPromo} />}
 
       {/* ── Brand Header ──────────────────────────────── */}
-      <header className="text-center mt-[clamp(40px,8vh,80px)] mb-8 anim-fade-up">
-        <img src={LogoImage.src} alt="Ubique" className="h-[60px] mx-auto" />
+      <header className="text-center mt-[clamp(28px,6vh,80px)] sm:mt-[clamp(40px,8vh,80px)] mb-5 sm:mb-8 anim-fade-up">
+        <img src={LogoImage.src} alt="Ubique" className="h-[44px] sm:h-[60px] mx-auto" />
       </header>
 
       {/* ── Hero Text ─────────────────────────────────── */}
-      <section className="text-center max-w-[480px] mb-9 anim-fade-up [animation-delay:0.1s]">
-        <h1 className="text-[30px] font-semibold leading-tight text-[var(--clr-text)] mb-4 tracking-tight">
+      <section className="text-center max-w-[480px] mb-6 sm:mb-9 anim-fade-up [animation-delay:0.1s]">
+        <h1 className="text-[22px] sm:text-[30px] font-semibold leading-tight text-[var(--clr-text)] mb-3 sm:mb-4 tracking-tight">
           Your Personal Style Advisor
         </h1>
-        <p className="text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto">
+        <p className="text-[14px] sm:text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto">
         Upload a photo and get honest feedback in seconds - what works, what to change, and what to wear instead.
         </p>
       </section>
@@ -753,9 +753,9 @@ export default function Home() {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={`
-          w-full max-w-[480px] bg-[var(--clr-surface)] rounded-[20px] card-upload
-          px-[clamp(24px,4vw,36px)] py-[clamp(28px,4vw,40px)]
-          mb-10 
+          w-full max-w-[480px] bg-[var(--clr-surface)] rounded-[16px] sm:rounded-[20px] card-upload
+          px-[clamp(16px,4vw,36px)] py-[clamp(20px,4vw,40px)]
+          mb-8 sm:mb-10 
           
           ${isDragging ? "dragging" : ""}
         `}
@@ -827,7 +827,7 @@ export default function Home() {
               <div
                 className="mb-4 overflow-y-auto"
                 style={{
-                  maxHeight: 600,
+                  maxHeight: "min(600px, 55vh)",
                   scrollbarWidth: "none",
                 }}
               >
@@ -845,7 +845,7 @@ export default function Home() {
                           </div>
                         )}
                         <div
-                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${isUser
+                          className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[13px] sm:text-sm leading-relaxed ${isUser
                             ? "bg-[#8410CA] text-white rounded-br-md"
                             : "bg-[var(--clr-bg)] text-[var(--clr-text)] border border-[var(--clr-border)] rounded-bl-md"
                             }`}
@@ -914,7 +914,7 @@ export default function Home() {
                     key={q}
                     onClick={() => askQuestion(q)}
                     disabled={isAsking}
-                    className="text-[12px] px-3 py-1.5 rounded-full border border-[var(--clr-border)] text-[var(--clr-text-sec)] bg-transparent cursor-pointer font-[var(--font-body)] hover:border-[var(--clr-accent)] hover:text-[var(--clr-accent)] hover:bg-[var(--clr-accent-light)] transition-all duration-150 disabled:opacity-50 disabled:cursor-default"
+                    className="text-[11px] sm:text-[12px] px-2.5 sm:px-3 py-1.5 rounded-full border border-[var(--clr-border)] text-[var(--clr-text-sec)] bg-transparent cursor-pointer font-[var(--font-body)] hover:border-[var(--clr-accent)] hover:text-[var(--clr-accent)] hover:bg-[var(--clr-accent-light)] transition-all duration-150 disabled:opacity-50 disabled:cursor-default"
                   >
                     {q}
                   </button>
@@ -994,7 +994,7 @@ export default function Home() {
                   }}
                   placeholder={messages.length === 0 ? "Ask anything - fit, colours, occasion…" : "Go deeper - ask about fit, styling…"}
                   disabled={isAsking}
-                  className="flex-1 px-4 py-3 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] text-[var(--clr-text)] text-sm font-[var(--font-body)] outline-none placeholder:text-[var(--clr-text-tri)] focus:border-[var(--clr-accent)] transition-colors disabled:opacity-50"
+                  className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] text-[var(--clr-text)] text-[13px] sm:text-sm font-[var(--font-body)] outline-none placeholder:text-[var(--clr-text-tri)] focus:border-[var(--clr-accent)] transition-colors disabled:opacity-50"
                   id="chat-input"
                 />
                 <button
@@ -1032,8 +1032,8 @@ export default function Home() {
         ) : (
           <>
            
-            <p className="text-sm text-[var(--clr-text-sec)] text-center mb-[clamp(20px,3vw,28px)]">
-               Try a mirror selfie, shopping screenshot, or something you're thinking of buying.
+            <p className="text-[13px] sm:text-sm text-[var(--clr-text-sec)] text-center mb-[clamp(16px,3vw,28px)]">
+               Try a mirror selfie, shopping screenshot, or something you&apos;re thinking of buying.
             </p>
 
 
@@ -1041,7 +1041,7 @@ export default function Home() {
             <button
               id="upload-photo-btn"
               onClick={handleUploadClick}
-              className="bg-[#8410CA] w-full flex items-center justify-center gap-2.5 py-[15px] px-6 text-base font-semibold text-white border-none rounded-full cursor-pointer mb-3 font-[var(--font-body)] tracking-[0.01em]"
+              className="bg-[#8410CA] w-full flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-[15px] px-5 sm:px-6 text-[15px] sm:text-base font-semibold text-white border-none rounded-full cursor-pointer mb-3 font-[var(--font-body)] tracking-[0.01em]"
             >
               <UploadIcon />
               Choose a photo
@@ -1051,14 +1051,14 @@ export default function Home() {
             <button
               id="take-photo-btn"
               onClick={handleCameraClick}
-              className="btn-outline w-full flex items-center justify-center gap-2.5 py-3.5 px-6 text-[15px] font-medium text-[var(--clr-text)] bg-transparent border-[1.5px] border-[var(--clr-border)] rounded-full cursor-pointer mb-5 font-[var(--font-body)]"
+              className="btn-outline w-full flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-5 sm:px-6 text-[14px] sm:text-[15px] font-medium text-[var(--clr-text)] bg-transparent border-[1.5px] border-[var(--clr-border)] rounded-full cursor-pointer mb-4 sm:mb-5 font-[var(--font-body)]"
             >
               <CameraIcon />
               Take photo
             </button>
 
             {/* Privacy */}
-            <p className="flex items-center justify-center gap-1.5 text-[13px] text-[var(--clr-text-tri)] text-center">
+            <p className="flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] text-[var(--clr-text-tri)] text-center">
               <LockIcon />
               Your photo stays private. Never saved, never shared.
             </p>
@@ -1067,8 +1067,8 @@ export default function Home() {
       </div>
 
       {/* ── Feature Bullets ───────────────────────────── */}
-      <section className="max-w-[460px] w-full mb-10 anim-fade-up [animation-delay:0.4s]">
-        <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3">
+      <section className="max-w-[460px] w-full mb-8 sm:mb-10 anim-fade-up [animation-delay:0.4s]">
+        <ul className="flex flex-wrap justify-center gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3">
           {[
             "Instant Analysis",
             "Color Harmony",
@@ -1082,24 +1082,24 @@ export default function Home() {
                 <div className="w-2 h-2 rounded-full bg-[#8410CA]" />
                 <div className="w-2 h-2 rounded-full bg-[#8410CA] opacity-40" />
               </div>
-              <span className="text-[14px] text-[var(--clr-text-sec)] font-medium tracking-tight">{text}</span>
+              <span className="text-[13px] sm:text-[14px] text-[var(--clr-text-sec)] font-medium tracking-tight">{text}</span>
             </li>
           ))}
         </ul>
       </section>
 
       {/* ── Social Proof ──────────────────────────────── */}
-      <section className="text-center max-w-[600px] mb-12 anim-fade [animation-delay:0.7s]">
-        <p className="text-sm text-[var(--clr-text-tri)] leading-relaxed italic mb-6">
+      <section className="text-center max-w-[600px] mb-8 sm:mb-12 anim-fade [animation-delay:0.7s]">
+        <p className="text-[13px] sm:text-sm text-[var(--clr-text-tri)] leading-relaxed italic mb-4 sm:mb-6">
           This is just a demo. In the app, Ubique remembers you, your wardrobe, your style, your conversations - and connects you to the best shops and experts from Milan. It&apos;s free.
         </p>
         
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
           <a
             href="https://apps.apple.com/us/app/ubique-fashion-style-advisor/id6553972786"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl hover:scale-[1.03] transition-transform shadow-sm"
+            className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-black text-white rounded-xl hover:scale-[1.03] transition-transform shadow-sm"
           >
             <svg width="16" height="19" viewBox="0 0 20 24" fill="currentColor">
               <path d="M15.07 12.95c-.03-2.79 2.28-4.14 2.38-4.21-1.3-1.9-3.32-2.16-4.04-2.19-1.72-.17-3.36 1.01-4.23 1.01-.87 0-2.22-.99-3.65-.96-1.88.03-3.61 1.09-4.58 2.78-1.95 3.39-.5 8.41 1.4 11.16.93 1.34 2.04 2.85 3.49 2.8 1.4-.06 1.93-.91 3.63-.91 1.69 0 2.18.91 3.66.88 1.51-.03 2.48-1.37 3.4-2.72 1.07-1.56 1.51-3.07 1.54-3.15-.03-.01-2.95-1.13-2.98-4.49zM12.25 4.6c.77-.94 1.29-2.24 1.15-3.54-1.11.05-2.45.74-3.25 1.67-.71.82-1.34 2.14-1.17 3.4 1.24.1 2.5-.63 3.27-1.53z" />
@@ -1114,7 +1114,7 @@ export default function Home() {
             href="https://play.google.com/store/apps/details?id=com.ubique"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl hover:scale-[1.03] transition-transform shadow-sm"
+            className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-black text-white rounded-xl hover:scale-[1.03] transition-transform shadow-sm"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .61-.92z" fill="#4285F4" />
@@ -1132,9 +1132,9 @@ export default function Home() {
       </main>
 
       {/* ── Footer ────────────────────────────────────── */}
-      <footer className="bg-black text-white pt-10 px-5">
+      <footer className="bg-black text-white pt-8 sm:pt-10 px-4 sm:px-5">
         <div className="max-w-[600px] mx-auto w-full">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 sm:gap-10 mb-8 sm:mb-12">
             
             {/* Left: Logo & Socials */}
             <div className="flex flex-col gap-6">
@@ -1160,11 +1160,11 @@ export default function Home() {
 
             {/* Right: Policies and Info stacked */}
             <div className="flex flex-col gap-2 md:items-end">
-              <div className="flex gap-6 sm:gap-10 text-sm font-medium tracking-wide">
+              <div className="flex gap-4 sm:gap-6 md:gap-10 text-sm font-medium tracking-wide">
                 <a href="https://www.ubiquefashion.com/legal" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Legal</a>
                 <a href="https://www.ubiquefashion.com/privacy-policy" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Privacy Policy</a>
               </div>
-              <div className="flex flex-col md:flex-row items-center md:items-end gap-2 text-[12px] text-white/50 tracking-wide font-light">
+              <div className="flex flex-col md:flex-row items-start md:items-end gap-1.5 sm:gap-2 text-[11px] sm:text-[12px] text-white/50 tracking-wide font-light">
                 <span>Ubique S.R.L.</span>
                 <span className="hidden md:inline">|</span>
                 <span>info@ubiquefashion.com</span>
