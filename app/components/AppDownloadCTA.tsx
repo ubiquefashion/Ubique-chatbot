@@ -87,7 +87,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
 
                 {/* UBIQUE branding */}
                 <div style={{ marginBottom: 24 }}>
-                    <img src={LogoImage.src} alt="Ubique" style={{ height: 26, margin: "0 auto" }} />
+                    <img src={LogoImage.src} alt="Ubique" style={{ height: 60, margin: "0 auto" }} />
                 </div>
 
                 {/* Heading */}
@@ -98,7 +98,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                     color: "#1a1a1a",
                     margin: "0 0 10px",
                 }}>
-                    It gets better in the app
+                    Continue in the app
                 </h2>
 
                 {/* Subtitle */}
@@ -108,7 +108,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                     lineHeight: 1.6,
                     margin: "0 0 24px",
                 }}>
-                   Create a free account on the app so Ubique can save your chat history, remember your wardrobe, and give you advice that gets better every time - free, forever.
+                   Ubique will remember your wardrobe, chats, and style preferences. Free, forever.
                 </p>
 
                 {/* Download for iPhone */}

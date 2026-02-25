@@ -498,6 +498,21 @@ export default function Home() {
     setDismissedAtCount(exchangeCount);
   }, [exchangeCount]);
 
+  const resetAll = useCallback(() => {
+    setUploadedFile(null);
+    setPendingImages([]);
+    setMessages([]);
+    setExchangeCount(0);
+    setQuestion("");
+    setShowPromo(false);
+    setShowChoiceModal(false);
+    setShowCamera(false);
+    if (promoTimeoutRef.current) {
+      clearTimeout(promoTimeoutRef.current);
+      promoTimeoutRef.current = null;
+    }
+  }, []);
+
   const chatDisabled = exchangeCount >= MAX_FREE_EXCHANGES;
 
   const askQuestion = useCallback(async (q: string) => {
@@ -734,18 +749,26 @@ export default function Home() {
 
       {/* ── Brand Header ──────────────────────────────── */}
       <header className="text-center mt-[clamp(28px,6vh,80px)] sm:mt-[clamp(40px,8vh,80px)] mb-5 sm:mb-8 anim-fade-up">
-        <img src={LogoImage.src} alt="Ubique" className="h-[44px] sm:h-[60px] mx-auto" />
+        <button 
+          onClick={resetAll} 
+          className="bg-transparent border-none p-0 cursor-pointer block mx-auto transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          aria-label="Go to homepage"
+        >
+          <img src={LogoImage.src} alt="Ubique" className="h-[44px] sm:h-[60px]" />
+        </button>
       </header>
 
       {/* ── Hero Text ─────────────────────────────────── */}
-      <section className="text-center max-w-[480px] mb-6 sm:mb-9 anim-fade-up [animation-delay:0.1s]">
-        <h1 className="text-[22px] sm:text-[30px] font-semibold leading-tight text-[var(--clr-text)] mb-3 sm:mb-4 tracking-tight">
-          Your Personal Style Advisor
-        </h1>
-        <p className="text-[14px] sm:text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto">
-        Upload a photo and get honest feedback in seconds - what works, what to change, and what to wear instead.
-        </p>
-      </section>
+      {messages.length === 0 && !uploadedFile && (
+        <section className="text-center max-w-[480px] mb-6 sm:mb-9 anim-fade-up [animation-delay:0.1s] pt-10">
+          <h1 className="text-[22px] sm:text-[30px] font-semibold leading-tight text-[var(--clr-text)] mb-3 sm:mb-4 tracking-tight">
+            Your Personal Style Advisor
+          </h1>
+          <p className="text-[14px] sm:text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto pt-4">
+          Upload a photo and get honest feedback in seconds - what works, what to change, and what to wear instead.
+          </p>
+        </section>
+      )}
 
       {/* ── Upload Card ───────────────────────────────── */}
       <div
@@ -795,7 +818,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-xl overflow-hidden border-2 border-[#8410CA]/30 shadow-sm"
+                      className="relative flex-shrink-0 rounded-xl overflow-hidden border border-[var(--clr-border)] bg-white shadow-lg p-1.5"
                       style={{ width: pendingImages.length === 1 ? "100%" : 120, height: pendingImages.length === 1 ? "auto" : 120 }}
                     >
                       <img
@@ -805,7 +828,11 @@ export default function Home() {
                         style={{ maxHeight: pendingImages.length === 1 ? 240 : 120 }}
                       />
                       <button
-                        onClick={() => setPendingImages((prev) => prev.filter((_, i) => i !== idx))}
+                        onClick={() => {
+                          const newImages = pendingImages.filter((_, i) => i !== idx);
+                          setPendingImages(newImages);
+                          if (newImages.length === 0) resetAll();
+                        }}
                         className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center text-xs font-bold cursor-pointer border-none hover:bg-black/70 transition-colors"
                         aria-label={`Remove image ${idx + 1}`}
                       >
@@ -840,21 +867,17 @@ export default function Home() {
                         className={`flex ${isUser ? "justify-end" : "justify-start"} items-end gap-2 mb-1 anim-fade-up`}
                       >
                         {!isUser && (
-                          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1">
-                            <img src={AiIcon.src} alt="AI" className="w-full h-full object-cover" />
+                          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1 bg-black">
+                            <img src={AiIcon.src} alt="AI" className="w-full h-full object-scale-down" />
                           </div>
                         )}
                         <div
                           className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-[13px] sm:text-sm leading-relaxed ${isUser
-                            ? "bg-[#8410CA] text-white rounded-br-md"
+                            ? "bg-[var(--clr-border)] text-[var(--clr-text)] border border-[var(--clr-border)] rounded-br-md"
                             : "bg-[var(--clr-bg)] text-[var(--clr-text)] border border-[var(--clr-border)] rounded-bl-md"
                             }`}
                         >
-                          {!isUser && (
-                            <span className="text-xs font-semibold text-[var(--clr-accent)] block mb-1">
-                              Ubique AI
-                            </span>
-                          )}
+
                           {isUser ? (
                             <div className="flex flex-col gap-3">
                               <span>{msg.content}</span>
@@ -863,7 +886,7 @@ export default function Home() {
                                   {msg.images.map((img, imgIdx) => (
                                     <div
                                       key={imgIdx}
-                                      className="rounded-lg overflow-hidden border border-white/20 shadow-sm"
+                                      className="rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-md p-1.5"
                                       style={{ width: msg.images!.length === 1 ? "100%" : "calc(50% - 3px)" }}
                                     >
                                       <img
@@ -891,7 +914,7 @@ export default function Home() {
                       <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1">
                         <img src={AiIcon.src} alt="AI" className="w-full h-full object-cover" />
                       </div>
-                      <div className="bg-[var(--clr-bg)] border border-[var(--clr-border)] rounded-2xl rounded-bl-md px-4 py-3">
+                      <div className="px-4 py-3">
                         <div className="flex gap-1.5 items-center">
                           <div className="w-2 h-2 rounded-full bg-[#8410CA]" style={{ animation: "pulse 1.2s ease infinite" }} />
                           <div className="w-2 h-2 rounded-full bg-[#8410CA]" style={{ animation: "pulse 1.2s ease 0.2s infinite" }} />
@@ -933,7 +956,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-lg overflow-hidden border-2 border-[#8410CA]/30 shadow-sm"
+                      className="relative flex-shrink-0 rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-sm p-1"
                       style={{ width: 72, height: 72 }}
                     >
                       <img
@@ -942,7 +965,11 @@ export default function Home() {
                         className="w-full h-full object-cover block"
                       />
                       <button
-                        onClick={() => setPendingImages((prev) => prev.filter((_, i) => i !== idx))}
+                        onClick={() => {
+                          const newImages = pendingImages.filter((_, i) => i !== idx);
+                          setPendingImages(newImages);
+                          if (newImages.length === 0 && messages.length === 0) resetAll();
+                        }}
                         className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px] font-bold cursor-pointer border-none hover:bg-black/70 transition-colors"
                         aria-label={`Remove image ${idx + 1}`}
                       >
@@ -1022,17 +1049,12 @@ export default function Home() {
               </div>
             )}
 
-            <button
-              onClick={() => { setUploadedFile(null); setQuestion(""); setMessages([]); setExchangeCount(0); setPendingImages([]); }}
-              className="text-[13px] text-[var(--clr-accent)] bg-transparent border-none cursor-pointer font-medium underline underline-offset-[3px] block mx-auto"
-            >
-              Upload a different photo
-            </button>
+
           </div>
         ) : (
           <>
            
-            <p className="text-[13px] sm:text-sm text-[var(--clr-text-sec)] text-center mb-[clamp(16px,3vw,28px)]">
+            <p className="text-[13px] sm:text-sm text-[var(--clr-text-sec)] text-center mb-[clamp(16px,3vw,28px)] py-6">
                Try a mirror selfie, shopping screenshot, or something you&apos;re thinking of buying.
             </p>
 
@@ -1058,7 +1080,7 @@ export default function Home() {
             </button>
 
             {/* Privacy */}
-            <p className="flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] text-[var(--clr-text-tri)] text-center">
+            <p className="flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] text-[var(--clr-text-tri)] text-center py-6">
               <LockIcon />
               Your photo stays private. Never saved, never shared.
             </p>
@@ -1091,7 +1113,7 @@ export default function Home() {
       {/* ── Social Proof ──────────────────────────────── */}
       <section className="text-center max-w-[600px] mb-8 sm:mb-12 anim-fade [animation-delay:0.7s]">
         <p className="text-[13px] sm:text-sm text-[var(--clr-text-tri)] leading-relaxed italic mb-4 sm:mb-6">
-          This is just a demo. In the app, Ubique remembers you, your wardrobe, your style, your conversations - and connects you to the best shops and experts from Milan. It&apos;s free.
+    This is a demo. Get the full experience on the UBIQUE FASHION app.
         </p>
         
         <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
@@ -1132,46 +1154,16 @@ export default function Home() {
       </main>
 
       {/* ── Footer ────────────────────────────────────── */}
-      <footer className="bg-black text-white pt-8 sm:pt-10 px-4 sm:px-5">
-        <div className="max-w-[600px] mx-auto w-full">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 sm:gap-10 mb-8 sm:mb-12">
-            
-            {/* Left: Logo & Socials */}
-            <div className="flex flex-col gap-6">
-              
-              <div className="flex gap-4">
-                {[
-                  { icon: <InstagramIcon />, url: "https://www.instagram.com/ubique_fashion/" },
-                  { icon: <LinkedinIcon />, url: "https://www.linkedin.com/company/ubique-fashion/?viewAsMember=true" },
-                  { icon: <FacebookIcon />, url: "https://www.facebook.com/ubiquefashionitaly/" }
-                ].map((social, i) => (
-                  <a
-                    key={i}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black hover:bg-white/90 transition-all hover:scale-105"
-                  >
-                    {social.icon}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Right: Policies and Info stacked */}
-            <div className="flex flex-col gap-2 md:items-end">
-              <div className="flex gap-4 sm:gap-6 md:gap-10 text-sm font-medium tracking-wide">
-                <a href="https://www.ubiquefashion.com/legal" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Legal</a>
-                <a href="https://www.ubiquefashion.com/privacy-policy" className="hover:text-white/70 transition-colors uppercase tracking-widest text-[11px]">Privacy Policy</a>
-              </div>
-              <div className="flex flex-col md:flex-row items-start md:items-end gap-1.5 sm:gap-2 text-[11px] sm:text-[12px] text-white/50 tracking-wide font-light">
-                <span>Ubique S.R.L.</span>
-                <span className="hidden md:inline">|</span>
-                <span>info@ubiquefashion.com</span>
-                <span className="hidden md:inline">|</span>
-                <span>P.IVA 11226420963</span>
-              </div>
-            </div>
+      <footer className="bg-[var(--clr-bg)] border-t border-[var(--clr-border)] py-8 px-4 sm:px-5">
+        <div className="max-w-[800px] mx-auto w-full text-center">
+          <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-2 text-[11px] sm:text-[12px] text-[var(--clr-text-tri)] font-medium uppercase tracking-widest">
+            <a href="https://www.ubiquefashion.com/legal" className="hover:text-[var(--clr-text-sec)] transition-colors">Terms & Conditions</a>
+            <span className="hidden sm:inline">|</span>
+            <a href="https://www.ubiquefashion.com/privacy-policy" className="hover:text-[var(--clr-text-sec)] transition-colors">Privacy Policy</a>
+            <span className="hidden sm:inline">|</span>
+            <span>Ubique S.R.L.</span>
+            <span className="hidden sm:inline">|</span>
+            <span>P.IVA 11226420963</span>
           </div>
         </div>
       </footer>
