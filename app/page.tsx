@@ -761,11 +761,14 @@ export default function Home() {
       {/* ── Hero Text ─────────────────────────────────── */}
       {messages.length === 0 && !uploadedFile && (
         <section className="text-center max-w-[480px] mb-6 sm:mb-9 anim-fade-up [animation-delay:0.1s] pt-10">
-          <h1 className="text-[22px] sm:text-[30px] font-semibold leading-tight text-[var(--clr-text)] mb-3 sm:mb-4 tracking-tight">
+          <h1 className="text-[22px] sm:text-[30px] font-semibold leading-tight text-[var(--clr-text)] tracking-tight">
             Your Personal Style Advisor
           </h1>
+           <p className="!text-[20px] sm:text-[clamp(15px,2vw,17px)] text-black leading-relaxed w-full mx-auto !pt-2">
+         Unlimited Outfit Advice. <span className="font-bold">Free Forever</span>
+          </p>
           <p className="text-[14px] sm:text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto pt-4">
-          Upload a photo and get honest feedback in seconds - what works, what to change, and what to wear instead.
+          <span className="font-bold text-black">Upload a photo</span> and get honest feedback in seconds - what works, what to change, and what to wear instead.
           </p>
         </section>
       )}
