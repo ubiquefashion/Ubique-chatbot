@@ -821,7 +821,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-lg"
+                      className="relative flex-shrink-0 rounded-xl overflow-hidden border border-[var(--clr-border)] bg-white shadow-lg p-1.5"
                       style={{ width: pendingImages.length === 1 ? "100%" : 120, height: pendingImages.length === 1 ? "auto" : 120 }}
                     >
                       <img
@@ -889,7 +889,7 @@ export default function Home() {
                                   {msg.images.map((img, imgIdx) => (
                                     <div
                                       key={imgIdx}
-                                      className="rounded-lg overflow-hidden shadow-md"
+                                      className="rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-md p-1.5"
                                       style={{ width: msg.images!.length === 1 ? "100%" : "calc(50% - 3px)" }}
                                     >
                                       <img
@@ -914,8 +914,8 @@ export default function Home() {
                   {/* Typing indicator */}
                   {isAsking && (
                     <div className="flex justify-start items-end gap-2 anim-fade">
-                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1">
-                        <img src={AiIcon.src} alt="AI" className="w-full h-full object-cover" />
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1 bg-black">
+                        <img src={AiIcon.src} alt="AI" className="w-full h-full object-scale-down" />
                       </div>
                       <div className="px-4 py-3">
                         <div className="flex gap-1.5 items-center">
@@ -959,7 +959,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-lg overflow-hidden shadow-sm"
+                      className="relative flex-shrink-0 rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-sm p-1"
                       style={{ width: 72, height: 72 }}
                     >
                       <img
