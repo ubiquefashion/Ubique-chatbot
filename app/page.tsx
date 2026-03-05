@@ -512,7 +512,7 @@ export default function Home() {
       promoTimeoutRef.current = null;
     }
   }, []);
-  
+
 
   const chatDisabled = exchangeCount >= MAX_FREE_EXCHANGES;
 
@@ -822,7 +822,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-xl overflow-hidden border border-[var(--clr-border)] bg-white shadow-lg p-1.5"
+                      className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-lg"
                       style={{ width: pendingImages.length === 1 ? "100%" : 120, height: pendingImages.length === 1 ? "auto" : 120 }}
                     >
                       <img
@@ -890,7 +890,7 @@ export default function Home() {
                                   {msg.images.map((img, imgIdx) => (
                                     <div
                                       key={imgIdx}
-                                      className="rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-md p-1.5"
+                                      className="rounded-lg overflow-hidden shadow-md"
                                       style={{ width: msg.images!.length === 1 ? "100%" : "calc(50% - 3px)" }}
                                     >
                                       <img
@@ -960,7 +960,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-sm p-1"
+                      className="relative flex-shrink-0 rounded-lg overflow-hidden shadow-sm"
                       style={{ width: 72, height: 72 }}
                     >
                       <img
