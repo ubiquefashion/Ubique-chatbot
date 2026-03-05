@@ -512,6 +512,7 @@ export default function Home() {
       promoTimeoutRef.current = null;
     }
   }, []);
+  
 
   const chatDisabled = exchangeCount >= MAX_FREE_EXCHANGES;
 
