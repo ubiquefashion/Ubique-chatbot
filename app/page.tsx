@@ -513,6 +513,7 @@ export default function Home() {
     }
   }, []);
 
+
   const chatDisabled = exchangeCount >= MAX_FREE_EXCHANGES;
 
   const askQuestion = useCallback(async (q: string) => {
@@ -914,8 +915,8 @@ export default function Home() {
                   {/* Typing indicator */}
                   {isAsking && (
                     <div className="flex justify-start items-end gap-2 anim-fade">
-                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1">
-                        <img src={AiIcon.src} alt="AI" className="w-full h-full object-cover" />
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-[var(--clr-border)] mb-1 bg-black">
+                        <img src={AiIcon.src} alt="AI" className="w-full h-full object-scale-down" />
                       </div>
                       <div className="px-4 py-3">
                         <div className="flex gap-1.5 items-center">
