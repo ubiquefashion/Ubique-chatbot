@@ -761,13 +761,13 @@ export default function Home() {
       {/* ── Hero Text ─────────────────────────────────── */}
       {messages.length === 0 && !uploadedFile && (
         <section className="text-center max-w-[480px] mb-6 sm:mb-9 anim-fade-up [animation-delay:0.1s] pt-10">
-          <h1 className="text-[22px] sm:text-[30px] font-semibold leading-tight text-[var(--clr-text)] tracking-tight">
+          <h1 className="text-[clamp(26px,7vw,32px)] font-semibold leading-tight text-[var(--clr-text)] tracking-tight">
             Your Personal Style Advisor
           </h1>
-           <p className="!text-[20px] sm:text-[clamp(15px,2vw,17px)] text-black leading-relaxed w-full mx-auto !pt-2">
+           <p className="text-[clamp(16px,4vw,18px)] text-black leading-relaxed w-full mx-auto pt-2">
          Unlimited Outfit Advice. <span className="font-bold">Free Forever</span>
           </p>
-          <p className="text-[14px] sm:text-[clamp(15px,2vw,17px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto pt-4">
+          <p className="text-[clamp(14px,2.5vw,16px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto pt-4">
           <span className="font-bold text-black">Upload a photo</span> and get honest feedback in seconds - what works, what to change, and what to wear instead.
           </p>
         </section>
@@ -821,7 +821,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-xl overflow-hidden border border-[var(--clr-border)] bg-white shadow-lg p-1.5"
+                      className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-lg"
                       style={{ width: pendingImages.length === 1 ? "100%" : 120, height: pendingImages.length === 1 ? "auto" : 120 }}
                     >
                       <img
@@ -889,7 +889,7 @@ export default function Home() {
                                   {msg.images.map((img, imgIdx) => (
                                     <div
                                       key={imgIdx}
-                                      className="rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-md p-1.5"
+                                      className="rounded-lg overflow-hidden shadow-md"
                                       style={{ width: msg.images!.length === 1 ? "100%" : "calc(50% - 3px)" }}
                                     >
                                       <img
@@ -959,7 +959,7 @@ export default function Home() {
                   {pendingImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative flex-shrink-0 rounded-lg overflow-hidden border border-[var(--clr-border)] bg-white shadow-sm p-1"
+                      className="relative flex-shrink-0 rounded-lg overflow-hidden shadow-sm"
                       style={{ width: 72, height: 72 }}
                     >
                       <img
