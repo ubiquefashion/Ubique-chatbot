@@ -5,6 +5,34 @@ import AppDownloadCTA from "./components/AppDownloadCTA";
 import LogoImage from "./Images/logo.png";
 import AiIcon from "./Images/Icon.jpg";
 
+/* ─── Image compression ──────────────────────────────── */
+
+const MAX_DIMENSION = 1024;
+const JPEG_QUALITY = 0.7;
+
+function compressImage(dataUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
+    };
+    img.onerror = () =>
+      reject(new Error("Unsupported image format. Please use JPEG, PNG, GIF, or WebP."));
+    img.src = dataUrl;
+  });
+}
+
 /* ─── Icons ───────────────────────────────────────────── */
 
 function UploadIcon({ className = "" }: { className?: string }) {
@@ -260,7 +288,7 @@ function CameraModal({
     }
 
     ctx.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+    const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
 
     // Stop stream
     if (streamRef.current) {
@@ -549,26 +577,34 @@ export default function Home() {
     // Collect all images to send: the images from this message
     const allImages = imagesForThisMessage || [uploadedFile];
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          images: allImages,
-          question: q.trim(),
-          history: history.length > 0 ? history : undefined,
-        }),
-      });
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1500;
+    const payload = JSON.stringify({
+      images: allImages,
+      question: q.trim(),
+      history: history.length > 0 ? history : undefined,
+    });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Something went wrong" }));
-        const errMsg: ChatMessage = {
-          id: Date.now().toString() + "_err",
-          role: "assistant",
-          content: err.error || "The fashion gods are unavailable. Try again! 😅",
-        };
-        setMessages((prev) => [...prev, errMsg]);
-      } else {
+    let lastError = "";
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: "Something went wrong" }));
+          lastError = err.error || "The fashion gods are unavailable. Try again! 😅";
+          if (attempt < MAX_RETRIES) {
+            await new Promise((r) => setTimeout(r, RETRY_DELAY * attempt));
+            continue;
+          }
+          break;
+        }
+
         const data = await res.json();
         const aiMsg: ChatMessage = {
           id: Date.now().toString() + "_ai",
@@ -580,50 +616,69 @@ export default function Home() {
         const newCount = exchangeCount + 1;
         setExchangeCount(newCount);
 
-        // Show app download modal after 5 seconds for the first reply
         if (newCount === FIRST_PROMO_AFTER) {
           promoTimeoutRef.current = setTimeout(() => {
             setShowPromo(true);
             promoTimeoutRef.current = null;
           }, 5000);
         } else if (dismissedAtCount !== null && newCount >= dismissedAtCount + REPROMO_AFTER) {
-          // Re-promo logic for subsequent exchanges
           setTimeout(() => setShowPromo(true), 600);
         }
+
+        lastError = "";
+        break;
+      } catch {
+        lastError = "Network error — even the WiFi doesn't want to cooperate. 💀";
+        if (attempt < MAX_RETRIES) {
+          await new Promise((r) => setTimeout(r, RETRY_DELAY * attempt));
+          continue;
+        }
       }
-    } catch {
+    }
+
+    if (lastError) {
       const errMsg: ChatMessage = {
         id: Date.now().toString() + "_err",
         role: "assistant",
-        content: "Network error — even the WiFi doesn't want to cooperate. 💀",
+        content: lastError,
       };
       setMessages((prev) => [...prev, errMsg]);
-    } finally {
-      setIsAsking(false);
     }
+
+    setIsAsking(false);
   }, [uploadedFile, pendingImages, isAsking, messages, exchangeCount, dismissedAtCount, chatDisabled]);
 
   const handleFile = useCallback((file: File) => {
     if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64Data = e.target?.result as string;
-        if (!uploadedFile && !keepChatRef.current) {
-          // First ever image — set as primary and reset chat
-          setUploadedFile(base64Data);
-          setPendingImages([base64Data]);
-          setMessages([]);
-          setExchangeCount(0);
-        } else {
-          // Additional image — append to pending
-          setUploadedFile((prev) => prev || base64Data);
-          setPendingImages((prev) => [...prev, base64Data]);
-          if (!keepChatRef.current) {
+      reader.onload = async (e) => {
+        const raw = e.target?.result as string;
+        try {
+          const base64Data = await compressImage(raw);
+          if (!uploadedFile && !keepChatRef.current) {
+            setUploadedFile(base64Data);
+            setPendingImages([base64Data]);
             setMessages([]);
             setExchangeCount(0);
+          } else {
+            setUploadedFile((prev) => prev || base64Data);
+            setPendingImages((prev) => [...prev, base64Data]);
+            if (!keepChatRef.current) {
+              setMessages([]);
+              setExchangeCount(0);
+            }
           }
+          keepChatRef.current = false;
+        } catch {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now().toString() + "_err",
+              role: "assistant" as const,
+              content: "That image format isn't supported — try uploading a JPEG, PNG, GIF, or WebP instead! 📸",
+            },
+          ]);
         }
-        keepChatRef.current = false;
       };
       reader.readAsDataURL(file);
     }
@@ -661,22 +716,34 @@ export default function Home() {
     }
   };
 
-  const handleCameraCapture = (dataUrl: string) => {
+  const handleCameraCapture = async (dataUrl: string) => {
     setShowCamera(false);
-    if (!uploadedFile && !keepChatRef.current) {
-      setUploadedFile(dataUrl);
-      setPendingImages([dataUrl]);
-      setMessages([]);
-      setExchangeCount(0);
-    } else {
-      setUploadedFile((prev) => prev || dataUrl);
-      setPendingImages((prev) => [...prev, dataUrl]);
-      if (!keepChatRef.current) {
+    try {
+      const compressed = await compressImage(dataUrl);
+      if (!uploadedFile && !keepChatRef.current) {
+        setUploadedFile(compressed);
+        setPendingImages([compressed]);
         setMessages([]);
         setExchangeCount(0);
+      } else {
+        setUploadedFile((prev) => prev || compressed);
+        setPendingImages((prev) => [...prev, compressed]);
+        if (!keepChatRef.current) {
+          setMessages([]);
+          setExchangeCount(0);
+        }
       }
+      keepChatRef.current = false;
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString() + "_err",
+          role: "assistant" as const,
+          content: "That image format isn't supported — try uploading a JPEG, PNG, GIF, or WebP instead! 📸",
+        },
+      ]);
     }
-    keepChatRef.current = false;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -794,7 +861,7 @@ export default function Home() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/gif,image/webp"
           onChange={handleFileChange}
           className="hidden"
           id="file-upload"
@@ -802,7 +869,7 @@ export default function Home() {
         <input
           ref={cameraInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/gif,image/webp"
           capture="user"
           onChange={handleFileChange}
           className="hidden"
