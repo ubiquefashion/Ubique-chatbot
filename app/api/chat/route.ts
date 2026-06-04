@@ -65,10 +65,11 @@ function buildImageParts(images: string[]) {
 
 export async function POST(req: NextRequest) {
     try {
-        const { images, question, history } = await req.json() as {
+        const { images, question, history, lang } = await req.json() as {
             images: string[];
             question: string;
             history?: ChatMessage[];
+            lang?: "en" | "it";
         };
 
         if ((!images || images.length === 0) || !question) {
@@ -89,11 +90,15 @@ export async function POST(req: NextRequest) {
 
         const url = "https://api.openai.com/v1/chat/completions";
 
+        const languageInstruction = lang === "it" 
+            ? "\n\nCRITICAL: You MUST answer strictly in Italian. Maintain the same witty, brutally honest tone." 
+            : "\n\nCRITICAL: You MUST answer strictly in English.";
+
         // Build messages array with conversation history
         const messages: Array<{ role: string; content: unknown }> = [
             {
                 role: "system",
-                content: SYSTEM_PROMPT,
+                content: SYSTEM_PROMPT + languageInstruction,
             },
         ];
 

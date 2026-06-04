@@ -24,7 +24,7 @@ function CloseX() {
     );
 }
 
-export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
+export default function AppDownloadCTA({ onClose, t }: { onClose: () => void, t: any }) {
     return (
         <div
             style={{
@@ -98,7 +98,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                     color: "#1a1a1a",
                     margin: "0 0 10px",
                 }}>
-                    Continue in the app
+                    {t.continueInApp}
                 </h2>
 
                 {/* Subtitle */}
@@ -108,7 +108,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                     lineHeight: 1.6,
                     margin: "0 0 24px",
                 }}>
-                   Ubique will remember your wardrobe, chats, and style preferences. Free, forever.
+                   {t.ubiqueRemembers}
                 </p>
 
                 {/* Download for iPhone */}
@@ -139,7 +139,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                     <svg width="20" height="24" viewBox="0 0 20 24" fill="currentColor">
                         <path d="M15.07 12.95c-.03-2.79 2.28-4.14 2.38-4.21-1.3-1.9-3.32-2.16-4.04-2.19-1.72-.17-3.36 1.01-4.23 1.01-.87 0-2.22-.99-3.65-.96-1.88.03-3.61 1.09-4.58 2.78-1.95 3.39-.5 8.41 1.4 11.16.93 1.34 2.04 2.85 3.49 2.8 1.4-.06 1.93-.91 3.63-.91 1.69 0 2.18.91 3.66.88 1.51-.03 2.48-1.37 3.4-2.72 1.07-1.56 1.51-3.07 1.54-3.15-.03-.01-2.95-1.13-2.98-4.49zM12.25 4.6c.77-.94 1.29-2.24 1.15-3.54-1.11.05-2.45.74-3.25 1.67-.71.82-1.34 2.14-1.17 3.4 1.24.1 2.5-.63 3.27-1.53z" />
                     </svg>
-                    Download on the App Store
+                    {t.downloadOn} {t.appStore}
                 </a>
 
                 {/* Download for Android */}
@@ -173,7 +173,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                         <path d="M20.683 10.346l-3.17-1.847L14.86 12l2.653 3.5 3.17-1.846c.89-.52.89-1.788 0-2.308z" fill="#FBBC04" />
                         <path d="M5.442 23.14l11.672-7.82L14.86 13.07 5.442 23.14z" fill="#34A853" />
                     </svg>
-                   Get it on Google Play
+                   {t.getItOn} {t.googlePlay}
                 </a>
 
                 {/* Maybe later */}
@@ -188,7 +188,7 @@ export default function AppDownloadCTA({ onClose }: { onClose: () => void }) {
                         fontFamily: "var(--font-body)",
                     }}
                 >
-                    Maybe later
+                    {t.maybeLater}
                 </button>
             </div>
         </div>

@@ -4,13 +4,16 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import AppDownloadCTA from "./components/AppDownloadCTA";
 import LogoImage from "./Images/logo.png";
 import AiIcon from "./Images/Icon.jpg";
+import { translations } from "../constants/translations";
+
+export type Language = "en" | "it";
 
 /* ─── Image compression ──────────────────────────────── */
 
 const MAX_DIMENSION = 1024;
 const JPEG_QUALITY = 0.7;
 
-function compressImage(dataUrl: string): Promise<string> {
+function compressImage(dataUrl: string, errorMsg: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -28,7 +31,7 @@ function compressImage(dataUrl: string): Promise<string> {
       resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
     };
     img.onerror = () =>
-      reject(new Error("Unsupported image format. Please use JPEG, PNG, GIF, or WebP."));
+      reject(new Error(errorMsg));
     img.src = dataUrl;
   });
 }
@@ -145,13 +148,6 @@ type ChatMessage = {
   images?: string[];
 };
 
-const QUICK_QUESTIONS = [
-  "How do I look?",
-  "What should I change?",
-  "How do I style this?",
-  "What shoes would go with this?",
-];
-
 const FIRST_PROMO_AFTER = 1;   // show modal after 1st exchange
 const REPROMO_AFTER = 3;       // reshow 3 exchanges after dismiss
 const MAX_FREE_EXCHANGES = 3;  // disable chat after this many
@@ -218,9 +214,11 @@ function renderMarkdown(text: string) {
 function CameraModal({
   onCapture,
   onClose,
+  t,
 }: {
   onCapture: (dataUrl: string) => void;
   onClose: () => void;
+  t: typeof translations["en"];
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -251,7 +249,7 @@ function CameraModal({
         };
       }
     } catch {
-      setError("Unable to access camera. Please allow camera permissions and try again.");
+      setError(t.cameraError);
     }
   }, []);
 
@@ -336,7 +334,7 @@ function CameraModal({
               cursor: "pointer",
             }}
           >
-            Go back
+            {t.goBack}
           </button>
         </div>
       ) : (
@@ -499,6 +497,8 @@ function CameraModal({
 /* ─── Main Page ───────────────────────────────────────── */
 
 export default function Home() {
+  const [lang, setLang] = useState<Language>("en");
+  const t = translations[lang];
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [pendingImages, setPendingImages] = useState<string[]>([]);
@@ -583,6 +583,7 @@ export default function Home() {
       images: allImages,
       question: q.trim(),
       history: history.length > 0 ? history : undefined,
+      lang: lang,
     });
 
     let lastError = "";
@@ -596,8 +597,8 @@ export default function Home() {
         });
 
         if (!res.ok) {
-          const err = await res.json().catch(() => ({ error: "Something went wrong" }));
-          lastError = err.error || "The fashion gods are unavailable. Try again! 😅";
+          const err = await res.json().catch(() => ({ error: t.somethingWentWrong }));
+          lastError = err.error || t.fashionGodsUnavailable;
           if (attempt < MAX_RETRIES) {
             await new Promise((r) => setTimeout(r, RETRY_DELAY * attempt));
             continue;
@@ -628,7 +629,7 @@ export default function Home() {
         lastError = "";
         break;
       } catch {
-        lastError = "Network error — even the WiFi doesn't want to cooperate. 💀";
+        lastError = t.networkError;
         if (attempt < MAX_RETRIES) {
           await new Promise((r) => setTimeout(r, RETRY_DELAY * attempt));
           continue;
@@ -646,7 +647,7 @@ export default function Home() {
     }
 
     setIsAsking(false);
-  }, [uploadedFile, pendingImages, isAsking, messages, exchangeCount, dismissedAtCount, chatDisabled]);
+  }, [uploadedFile, pendingImages, isAsking, messages, exchangeCount, dismissedAtCount, chatDisabled, t]);
 
   const handleFile = useCallback((file: File) => {
     if (file && file.type.startsWith("image/")) {
@@ -654,7 +655,7 @@ export default function Home() {
       reader.onload = async (e) => {
         const raw = e.target?.result as string;
         try {
-          const base64Data = await compressImage(raw);
+          const base64Data = await compressImage(raw, t.unsupportedImageFormat);
           if (!uploadedFile && !keepChatRef.current) {
             setUploadedFile(base64Data);
             setPendingImages([base64Data]);
@@ -675,14 +676,14 @@ export default function Home() {
             {
               id: Date.now().toString() + "_err",
               role: "assistant" as const,
-              content: "That image format isn't supported — try uploading a JPEG, PNG, GIF, or WebP instead! 📸",
+              content: t.imageFormatNotSupported,
             },
           ]);
         }
       };
       reader.readAsDataURL(file);
     }
-  }, [uploadedFile]);
+  }, [uploadedFile, t]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -719,7 +720,7 @@ export default function Home() {
   const handleCameraCapture = async (dataUrl: string) => {
     setShowCamera(false);
     try {
-      const compressed = await compressImage(dataUrl);
+      const compressed = await compressImage(dataUrl, t.unsupportedImageFormat);
       if (!uploadedFile && !keepChatRef.current) {
         setUploadedFile(compressed);
         setPendingImages([compressed]);
@@ -740,7 +741,7 @@ export default function Home() {
         {
           id: Date.now().toString() + "_err",
           role: "assistant" as const,
-          content: "That image format isn't supported — try uploading a JPEG, PNG, GIF, or WebP instead! 📸",
+          content: t.imageFormatNotSupported,
         },
       ]);
     }
@@ -768,7 +769,7 @@ export default function Home() {
             onClick={() => setShowChoiceModal(false)}
           />
           <div className="relative bg-white rounded-3xl p-6 w-full max-w-[320px] shadow-2xl anim-scale text-center">
-            <h3 className="text-lg font-semibold mb-6 text-[var(--clr-text)]">Add a photo</h3>
+            <h3 className="text-lg font-semibold mb-6 text-[var(--clr-text)]">{t.addPhoto}</h3>
             
             <div className="flex flex-col gap-3">
               <button
@@ -779,7 +780,7 @@ export default function Home() {
                 className="w-full py-4 rounded-2xl bg-[var(--clr-bg)] border border-[var(--clr-border)] text-[var(--clr-text)] font-semibold flex items-center justify-center gap-3 hover:bg-[var(--clr-accent-light)] hover:border-[var(--clr-accent)] transition-all"
               >
                 <UploadIcon className="text-[var(--clr-accent)]" />
-                Choose Photo
+                {t.choosePhoto}
               </button>
               
               <button
@@ -790,7 +791,7 @@ export default function Home() {
                 className="w-full py-4 rounded-2xl bg-[var(--clr-bg)] border border-[var(--clr-border)] text-[var(--clr-text)] font-semibold flex items-center justify-center gap-3 hover:bg-[var(--clr-accent-light)] hover:border-[var(--clr-accent)] transition-all"
               >
                 <CameraIcon className="text-[var(--clr-accent)]" />
-                Take Photo
+                {t.takePhoto}
               </button>
             </div>
             
@@ -798,7 +799,7 @@ export default function Home() {
               onClick={() => setShowChoiceModal(false)}
               className="mt-6 text-sm text-[var(--clr-text-sec)] font-medium"
             >
-              Cancel
+              {t.cancel}
             </button>
           </div>
         </div>
@@ -809,20 +810,32 @@ export default function Home() {
         <CameraModal
           onCapture={handleCameraCapture}
           onClose={() => setShowCamera(false)}
+          t={t}
         />
       )}
 
       {/* ── App Download Modal ─────────────────── */}
-      {showPromo && <AppDownloadCTA onClose={handleDismissPromo} />}
+      {showPromo && <AppDownloadCTA onClose={handleDismissPromo} t={t} />}
 
       {/* ── Brand Header ──────────────────────────────── */}
-      <header className="text-center mt-[clamp(28px,6vh,80px)] sm:mt-[clamp(40px,8vh,80px)] mb-5 sm:mb-8 anim-fade-up">
+      <header className="relative w-full max-w-[480px] flex justify-center items-center mt-[clamp(28px,6vh,80px)] sm:mt-[clamp(40px,8vh,80px)] mb-5 sm:mb-8 anim-fade-up">
         <button 
           onClick={resetAll} 
-          className="bg-transparent border-none p-0 cursor-pointer block mx-auto transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="bg-transparent border-none p-0 cursor-pointer block transition-transform hover:scale-[1.02] active:scale-[0.98]"
           aria-label="Go to homepage"
         >
           <img src={LogoImage.src} alt="Ubique" className="h-[44px] sm:h-[60px]" />
+        </button>
+        <button
+          onClick={() => setLang(lang === "en" ? "it" : "en")}
+          className="absolute right-0 flex items-center w-[64px] sm:w-[76px] h-[32px] sm:h-[36px] bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-md sm:rounded-lg p-1 cursor-pointer transition-colors hover:border-[var(--clr-text-sec)]"
+          aria-label="Toggle language"
+        >
+          <div 
+            className={`absolute top-1 bottom-1 left-1 w-[28px] sm:w-[34px] bg-[var(--clr-text)] rounded-[4px] sm:rounded-md transition-transform duration-300 ease-in-out ${lang === "en" ? "translate-x-0" : "translate-x-[28px] sm:translate-x-[34px]"}`}
+          />
+          <span className={`relative z-10 flex-1 text-center text-[10px] sm:text-xs font-bold transition-colors duration-300 ${lang === "en" ? "text-[var(--clr-bg)]" : "text-[var(--clr-text-sec)]"}`}>EN</span>
+          <span className={`relative z-10 flex-1 text-center text-[10px] sm:text-xs font-bold transition-colors duration-300 ${lang === "it" ? "text-[var(--clr-bg)]" : "text-[var(--clr-text-sec)]"}`}>IT</span>
         </button>
       </header>
 
@@ -830,13 +843,13 @@ export default function Home() {
       {messages.length === 0 && !uploadedFile && (
         <section className="text-center max-w-[480px] mb-6 sm:mb-9 anim-fade-up [animation-delay:0.1s] pt-10">
           <h1 className="text-[clamp(26px,7vw,32px)] font-semibold leading-tight text-[var(--clr-text)] tracking-tight">
-            Your Personal Style Advisor
+            {t.heroTitle}
           </h1>
            <p className="text-[clamp(16px,4vw,18px)] text-black leading-relaxed w-full mx-auto pt-2">
-         Unlimited Outfit Advice. <span className="font-bold">Free Forever</span>
+         {t.heroSubtitlePart1}<span className="font-bold">{t.heroSubtitlePart2}</span>
           </p>
           <p className="text-[clamp(14px,2.5vw,16px)] text-[var(--clr-text-sec)] leading-relaxed w-full mx-auto pt-4">
-          <span className="font-bold text-black">Upload a photo</span> and get honest feedback in seconds - what works, what to change, and what to wear instead.
+          <span className="font-bold text-black">{t.heroDescPart1}</span>{t.heroDescPart2}
           </p>
         </section>
       )}
@@ -916,7 +929,7 @@ export default function Home() {
                   onClick={() => setShowChoiceModal(true)}
                   className="mt-2 text-xs text-[#8410CA] font-semibold bg-transparent border-none cursor-pointer flex items-center gap-1 mx-auto hover:underline"
                 >
-                  <ImagePlusIcon className="!w-4 !h-4" /> Add another photo
+                  <ImagePlusIcon className="!w-4 !h-4" /> {t.addAnotherPhoto}
                 </button>
               </div>
             )}
@@ -1003,7 +1016,7 @@ export default function Home() {
             {/* Quick question chips (show only when no messages yet and chat not disabled) */}
             {messages.length === 0 && !chatDisabled && (
               <div className="flex flex-wrap gap-2 justify-center mb-4">
-                {QUICK_QUESTIONS.map((q) => (
+                {t.quickQuestions.map((q) => (
                   <button
                     key={q}
                     onClick={() => askQuestion(q)}
@@ -1054,16 +1067,16 @@ export default function Home() {
             {chatDisabled ? (
               <div className="text-center py-3 px-4 rounded-2xl mb-4 anim-fade-up" style={{ background: "rgba(132,16,202,0.06)", border: "1px solid rgba(132,16,202,0.15)" }}>
                 <p className="text-sm font-semibold text-[var(--clr-text)] mb-1">
-                  You&apos;ve used your free styling advice!
+                  {t.freeAdviceUsed}
                 </p>
                 <p className="text-xs text-[var(--clr-text-sec)] mb-3">
-                  Download the app for unlimited fashion chats.
+                  {t.downloadAppForUnlimited}
                 </p>
                 <button
                   onClick={() => setShowPromo(true)}
                   className="px-5 py-2 rounded-full bg-[#8410CA] text-white text-sm font-semibold border-none cursor-pointer hover:bg-[#6d00cc] transition-colors"
                 >
-                  Get the App
+                  {t.getTheApp}
                 </button>
               </div>
             ) : (
@@ -1090,7 +1103,7 @@ export default function Home() {
                       askQuestion(question);
                     }
                   }}
-                  placeholder={messages.length === 0 ? "Ask anything - fit, colours, occasion…" : "Go deeper - ask about fit, styling…"}
+                  placeholder={messages.length === 0 ? t.askAnything : t.goDeeper}
                   disabled={isAsking}
                   className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] text-[var(--clr-text)] text-[13px] sm:text-sm font-[var(--font-body)] outline-none placeholder:text-[var(--clr-text-tri)] focus:border-[var(--clr-accent)] transition-colors disabled:opacity-50"
                   id="chat-input"
@@ -1126,7 +1139,7 @@ export default function Home() {
           <>
            
             <p className="text-[13px] sm:text-sm text-[var(--clr-text-sec)] text-center mb-[clamp(16px,3vw,28px)] py-6">
-               Try a mirror selfie, shopping screenshot, or something you&apos;re thinking of buying.
+               {t.tryMirrorSelfie}
             </p>
 
 
@@ -1137,7 +1150,7 @@ export default function Home() {
               className="bg-[#8410CA] w-full flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-[15px] px-5 sm:px-6 text-[15px] sm:text-base font-semibold text-white border-none rounded-full cursor-pointer mb-3 font-[var(--font-body)] tracking-[0.01em]"
             >
               <UploadIcon />
-              Choose a photo
+              {t.chooseAPhoto}
             </button>
 
             {/* Take photo */}
@@ -1147,13 +1160,13 @@ export default function Home() {
               className="btn-outline w-full flex items-center justify-center gap-2 sm:gap-2.5 py-3 sm:py-3.5 px-5 sm:px-6 text-[14px] sm:text-[15px] font-medium text-[var(--clr-text)] bg-transparent border-[1.5px] border-[var(--clr-border)] rounded-full cursor-pointer mb-4 sm:mb-5 font-[var(--font-body)]"
             >
               <CameraIcon />
-              Take photo
+              {t.takeAPhoto}
             </button>
 
             {/* Privacy */}
             <p className="flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] text-[var(--clr-text-tri)] text-center py-6">
               <LockIcon />
-              Your photo stays private. Never saved, never shared.
+              {t.photoStaysPrivate}
             </p>
           </>
         )}
@@ -1162,11 +1175,7 @@ export default function Home() {
       {/* ── Feature Bullets ───────────────────────────── */}
       <section className="max-w-[460px] w-full mb-8 sm:mb-10 anim-fade-up [animation-delay:0.4s]">
         <ul className="flex flex-wrap justify-center gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3">
-          {[
-            "Instant Analysis",
-            "Color Harmony",
-            "Fit Advice",
-          ].map((text, i) => (
+          {t.features.map((text, i) => (
             <li
               key={i}
               className="flex items-center gap-2.5"
@@ -1184,7 +1193,7 @@ export default function Home() {
       {/* ── Social Proof ──────────────────────────────── */}
       <section className="text-center max-w-[600px] mb-8 sm:mb-12 anim-fade [animation-delay:0.7s]">
         <p className="text-[13px] sm:text-sm text-[var(--clr-text-tri)] leading-relaxed italic mb-4 sm:mb-6">
-    This is a demo. Get the full experience on the UBIQUE FASHION app.
+    {t.demoDisclaimer}
         </p>
         
         <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
@@ -1198,8 +1207,8 @@ export default function Home() {
               <path d="M15.07 12.95c-.03-2.79 2.28-4.14 2.38-4.21-1.3-1.9-3.32-2.16-4.04-2.19-1.72-.17-3.36 1.01-4.23 1.01-.87 0-2.22-.99-3.65-.96-1.88.03-3.61 1.09-4.58 2.78-1.95 3.39-.5 8.41 1.4 11.16.93 1.34 2.04 2.85 3.49 2.8 1.4-.06 1.93-.91 3.63-.91 1.69 0 2.18.91 3.66.88 1.51-.03 2.48-1.37 3.4-2.72 1.07-1.56 1.51-3.07 1.54-3.15-.03-.01-2.95-1.13-2.98-4.49zM12.25 4.6c.77-.94 1.29-2.24 1.15-3.54-1.11.05-2.45.74-3.25 1.67-.71.82-1.34 2.14-1.17 3.4 1.24.1 2.5-.63 3.27-1.53z" />
             </svg>
             <div className="text-left">
-              <div className="text-[10px] leading-none opacity-60">Download on the</div>
-              <div className="text-[14px] font-semibold leading-none mt-0.5">App Store</div>
+              <div className="text-[10px] leading-none opacity-60">{t.downloadOn}</div>
+              <div className="text-[14px] font-semibold leading-none mt-0.5">{t.appStore}</div>
             </div>
           </a>
           
@@ -1216,8 +1225,8 @@ export default function Home() {
               <path d="M5.442 23.14l11.672-7.82L14.86 13.07 5.442 23.14z" fill="#34A853" />
             </svg>
             <div className="text-left">
-              <div className="text-[10px] leading-none opacity-60">GET IT ON</div>
-              <div className="text-[14px] font-semibold leading-none mt-0.5">Google Play</div>
+              <div className="text-[10px] leading-none opacity-60">{t.getItOn}</div>
+              <div className="text-[14px] font-semibold leading-none mt-0.5">{t.googlePlay}</div>
             </div>
           </a>
         </div>
@@ -1228,9 +1237,9 @@ export default function Home() {
       <footer className="bg-[var(--clr-bg)] border-t border-[var(--clr-border)] py-8 px-4 sm:px-5">
         <div className="max-w-[800px] mx-auto w-full text-center">
           <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-2 text-[11px] sm:text-[12px] text-[var(--clr-text-tri)] font-medium uppercase tracking-widest">
-            <a href="https://www.ubiquefashion.com/legal" className="hover:text-[var(--clr-text-sec)] transition-colors">Terms & Conditions</a>
+            <a href="https://www.ubiquefashion.com/legal" className="hover:text-[var(--clr-text-sec)] transition-colors">{t.termsConditions}</a>
             <span className="hidden sm:inline">|</span>
-            <a href="https://www.ubiquefashion.com/privacy-policy" className="hover:text-[var(--clr-text-sec)] transition-colors">Privacy Policy</a>
+            <a href="https://www.ubiquefashion.com/privacy-policy" className="hover:text-[var(--clr-text-sec)] transition-colors">{t.privacyPolicy}</a>
             <span className="hidden sm:inline">|</span>
             <span>Ubique S.R.L.</span>
             <span className="hidden sm:inline">|</span>
