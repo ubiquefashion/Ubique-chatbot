@@ -836,7 +836,10 @@ export default function Home() {
           <img src={LogoImage.src} alt="Ubique" className="h-[44px] sm:h-[60px]" />
         </button>
         <button
-          onClick={() => setLang(lang === "en" ? "it" : "en")}
+          onClick={() => {
+            setLang(lang === "en" ? "it" : "en");
+            resetAll();
+          }}
           className="absolute right-0 flex items-center w-[64px] sm:w-[76px] h-[32px] sm:h-[36px] bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-md sm:rounded-lg p-1 cursor-pointer transition-colors hover:border-[var(--clr-text-sec)]"
           aria-label="Toggle language"
         >
