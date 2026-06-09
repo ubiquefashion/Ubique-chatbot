@@ -498,6 +498,15 @@ function CameraModal({
 
 export default function Home() {
   const [lang, setLang] = useState<Language>("en");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.language) {
+      if (navigator.language.toLowerCase().startsWith("it")) {
+        setLang("it");
+      }
+    }
+  }, []);
+
   const t = translations[lang];
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
