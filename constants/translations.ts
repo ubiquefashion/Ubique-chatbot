@@ -79,7 +79,7 @@ export const translations = {
     photoStaysPrivate: "La tua foto resta privata. Non la salviamo né la condividiamo.",
     features: [
       "Analisi in tempo reale.",
-      "Armocromia",
+      "Armocromia.",
       "Consigli di vestibilità.",
     ],
     demoDisclaimer: "Questa è solo una demo. Scopri l'esperienza completa su UBIQUE FASHION.",
