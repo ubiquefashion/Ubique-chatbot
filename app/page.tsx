@@ -1176,8 +1176,8 @@ export default function Home() {
             </button>
 
             {/* Privacy */}
-            <p className="flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] text-[var(--clr-text-tri)] text-center py-6">
-              <LockIcon />
+            <p className="text-[12px] sm:text-[13px] text-[var(--clr-text-tri)] text-center py-6 px-2">
+              <LockIcon className="inline-block mr-1.5 relative -top-[1px]" />
               {t.photoStaysPrivate}
             </p>
           </>

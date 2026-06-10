@@ -52,7 +52,7 @@ export const translations = {
     unsupportedImageFormat: "Formato immagine non supportato. Usa JPEG, PNG, GIF o WebP.",
     quickQuestions: [
       "Come mi sta?",
-      "Cosa dovrei cambiare nel look?",
+      "Cosa dovrei cambiare?",
       "Come valorizzo questo capo?",
       "Con quali scarpe lo abbino?",
     ],
@@ -63,7 +63,7 @@ export const translations = {
     takePhoto: "Scatta una foto",
     cancel: "Annulla",
     heroTitle: "IL TUO STYLIST PERSONALE",
-    heroSubtitlePart1: "Un secondo parere per ogni outfit",
+    heroSubtitlePart1: "Un secondo parere per ogni outfit.",
     heroSubtitlePart2: "",
     heroDescPart1: "",
     heroDescPart2: "Ricevi consigli personalizzati immediati su tutto ciò che acquisti, indossi o possiedi già.",
@@ -93,7 +93,7 @@ export const translations = {
     fashionGodsUnavailable: "Gli dèi della moda non sono disponibili. Riprova! 😅",
     networkError: "Errore di rete — persino il WiFi non vuole collaborare. 💀",
     somethingWentWrong: "Qualcosa è andato storto",
-    continueInApp: "Non perdere il filo. Continua sull’app.",
+    continueInApp: "Continua la conversazione sull’app.",
     ubiqueRemembers: "Ubique ricorda il tuo guardaroba, le conversazioni e le tue preferenze di stile.",
     maybeLater: "Magari dopo"
   }
